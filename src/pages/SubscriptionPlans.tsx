@@ -4,18 +4,53 @@ import {
   Dialog, DialogTitle, DialogContent, DialogActions, TextField,
   FormControl, InputLabel, Select, MenuItem, Chip, IconButton,
   Snackbar, Alert, List, ListItem, ListItemIcon, ListItemText,
+  CircularProgress,
 } from '@mui/material';
 import { Edit, Delete, Add, CheckCircle } from '@mui/icons-material';
-import { mockPlans, SubscriptionPlan } from '../data/mockData';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { SubscriptionPlan } from '../data/mockData';
+import { getPlans, savePlan, deletePlan } from '../services/subscriptionService';
 import ConfirmDialog from '../components/shared/ConfirmDialog';
 
 const SubscriptionPlans: React.FC = () => {
-  const [plans, setPlans] = useState<SubscriptionPlan[]>(mockPlans);
+  const queryClient = useQueryClient();
   const [formOpen, setFormOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selected, setSelected] = useState<SubscriptionPlan | null>(null);
   const [form, setForm] = useState({ name: '', price: 0, duration: 'monthly' as SubscriptionPlan['duration'], features: '' });
   const [toast, setToast] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
+
+  const { data: plans = [], isLoading, isError, error } = useQuery({
+    queryKey: ['subscription-plans'],
+    queryFn: getPlans,
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: savePlan,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['subscription-plans'] });
+      setToast({ open: true, message: selected ? 'Plan updated' : 'Plan added', severity: 'success' });
+      setFormOpen(false);
+    },
+    onError: (error: any) => {
+      const msg = error.response?.data?.message || 'Failed to save plan';
+      setToast({ open: true, message: msg, severity: 'error' });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deletePlan,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['subscription-plans'] });
+      setToast({ open: true, message: 'Plan deleted', severity: 'success' });
+      setDeleteOpen(false);
+      setSelected(null);
+    },
+    onError: (error: any) => {
+      const msg = error.response?.data?.message || 'Failed to delete plan';
+      setToast({ open: true, message: msg, severity: 'error' });
+    },
+  });
 
   const openAdd = () => { setSelected(null); setForm({ name: '', price: 0, duration: 'monthly', features: '' }); setFormOpen(true); };
   const openEdit = (p: SubscriptionPlan) => {
@@ -26,23 +61,47 @@ const SubscriptionPlans: React.FC = () => {
 
   const handleSave = () => {
     const featuresList = form.features.split('\n').filter(Boolean);
-    if (selected) {
-      setPlans(plans.map((p) => p.id === selected.id ? { ...p, name: form.name, price: form.price, duration: form.duration, features: featuresList } : p));
-      setToast({ open: true, message: 'Plan updated', severity: 'success' });
-    } else {
-      setPlans([...plans, { id: Date.now().toString(), name: form.name, price: form.price, duration: form.duration, features: featuresList }]);
-      setToast({ open: true, message: 'Plan added', severity: 'success' });
-    }
-    setFormOpen(false);
+    saveMutation.mutate({
+      ...selected,
+      name: form.name,
+      price: form.price,
+      duration: form.duration,
+      features: featuresList,
+    });
   };
 
   const handleDelete = () => {
     if (selected) {
-      setPlans(plans.filter((p) => p.id !== selected.id));
-      setToast({ open: true, message: 'Plan deleted', severity: 'success' });
+      deleteMutation.mutate(selected.id);
     }
-    setDeleteOpen(false); setSelected(null);
   };
+
+  if (isLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', minHeight: 400 }}>
+        <CircularProgress sx={{ color: '#980755' }} />
+      </Box>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Alert severity="error">
+          Failed to load subscription plans.
+          <Typography variant="body2" sx={{ mt: 1 }}>
+            Error: {(error as any)?.message || 'Unreachable backend'}
+          </Typography>
+          <Typography variant="caption" display="block" sx={{ mt: 1 }}>
+            Please ensure your backend is running at {import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'} and CORS is enabled.
+          </Typography>
+        </Alert>
+        <Button variant="outlined" sx={{ mt: 2 }} onClick={() => queryClient.invalidateQueries({ queryKey: ['subscription-plans'] })}>
+          Retry
+        </Button>
+      </Box>
+    );
+  }
 
   return (
     <Box>
@@ -78,29 +137,33 @@ const SubscriptionPlans: React.FC = () => {
                 </List>
               </CardContent>
               <CardActions sx={{ px: 2, pb: 2 }}>
-                <IconButton size="small" onClick={() => openEdit(plan)}><Edit fontSize="small" /></IconButton>
-                <IconButton size="small" color="error" onClick={() => { setSelected(plan); setDeleteOpen(true); }}><Delete fontSize="small" /></IconButton>
+                <IconButton size="small" onClick={() => openEdit(plan)} disabled={deleteMutation.isPending}><Edit fontSize="small" /></IconButton>
+                <IconButton size="small" color="error" onClick={() => { setSelected(plan); setDeleteOpen(true); }} disabled={deleteMutation.isPending}>
+                  {deleteMutation.isPending && selected?.id === plan.id ? <CircularProgress size={20} color="inherit" /> : <Delete fontSize="small" />}
+                </IconButton>
               </CardActions>
             </Card>
           </Grid>
         ))}
       </Grid>
 
-      <Dialog open={formOpen} onClose={() => setFormOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog open={formOpen} onClose={() => !saveMutation.isPending && setFormOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>{selected ? 'Edit Plan' : 'Add Plan'}</DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: '16px !important' }}>
-          <TextField label="Plan Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} fullWidth />
-          <TextField label="Price" type="number" value={form.price} onChange={(e) => setForm({ ...form, price: parseFloat(e.target.value) })} fullWidth />
-          <FormControl fullWidth><InputLabel>Duration</InputLabel>
+          <TextField label="Plan Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} fullWidth disabled={saveMutation.isPending} />
+          <TextField label="Price" type="number" value={form.price} onChange={(e) => setForm({ ...form, price: parseFloat(e.target.value) })} fullWidth disabled={saveMutation.isPending} />
+          <FormControl fullWidth disabled={saveMutation.isPending}><InputLabel>Duration</InputLabel>
             <Select value={form.duration} label="Duration" onChange={(e) => setForm({ ...form, duration: e.target.value as SubscriptionPlan['duration'] })}>
               <MenuItem value="monthly">Monthly</MenuItem><MenuItem value="yearly">Yearly</MenuItem>
             </Select>
           </FormControl>
-          <TextField label="Features (one per line)" value={form.features} onChange={(e) => setForm({ ...form, features: e.target.value })} multiline rows={4} fullWidth />
+          <TextField label="Features (one per line)" value={form.features} onChange={(e) => setForm({ ...form, features: e.target.value })} multiline rows={4} fullWidth disabled={saveMutation.isPending} />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setFormOpen(false)}>Cancel</Button>
-          <Button onClick={handleSave} variant="contained">{selected ? 'Save' : 'Add'}</Button>
+          <Button onClick={() => setFormOpen(false)} disabled={saveMutation.isPending}>Cancel</Button>
+          <Button onClick={handleSave} variant="contained" disabled={saveMutation.isPending}>
+            {saveMutation.isPending ? <CircularProgress size={24} color="inherit" /> : (selected ? 'Save' : 'Add')}
+          </Button>
         </DialogActions>
       </Dialog>
 

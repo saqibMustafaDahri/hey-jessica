@@ -6,41 +6,59 @@ import {
   MenuItem, Snackbar, Alert,
 } from '@mui/material';
 import { Edit, Delete, Add } from '@mui/icons-material';
-import { mockTutorialVideos, TutorialVideo } from '../data/mockData';
 import ConfirmDialog from '../components/shared/ConfirmDialog';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getVideos, saveVideoMetadata, deleteVideo, Video } from '../services/videoService';
 
 const TutorialVideos: React.FC = () => {
-  const [videos, setVideos] = useState<TutorialVideo[]>(mockTutorialVideos);
+  const queryClient = useQueryClient();
   const [tab, setTab] = useState(0);
   const [formOpen, setFormOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [selected, setSelected] = useState<TutorialVideo | null>(null);
-  const [form, setForm] = useState({ title: '', category: 'Free' as TutorialVideo['category'], url: '' });
+  const [selected, setSelected] = useState<Video | null>(null);
+  const [form, setForm] = useState({ title: '', category: 'Free' as Video['category'], url: '' });
   const [toast, setToast] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
 
-  const filtered = tab === 0 ? videos : videos.filter((v) => (tab === 1 ? v.category === 'Free' : v.category === 'Premium'));
+  const category = tab === 0 ? undefined : (tab === 1 ? 'Free' : 'Premium');
+
+  const { data: videos = [], isLoading } = useQuery({
+    queryKey: ['videos', category],
+    queryFn: () => getVideos(category),
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: saveVideoMetadata,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['videos'] });
+      setToast({ open: true, message: selected ? 'Video updated' : 'Video added', severity: 'success' });
+      setFormOpen(false);
+    },
+    onError: () => setToast({ open: true, message: 'Failed to save video', severity: 'error' }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteVideo,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['videos'] });
+      setToast({ open: true, message: 'Video deleted', severity: 'success' });
+      setDeleteOpen(false);
+      setSelected(null);
+    },
+    onError: () => setToast({ open: true, message: 'Failed to delete video', severity: 'error' }),
+  });
 
   const openAdd = () => { setSelected(null); setForm({ title: '', category: 'Free', url: '' }); setFormOpen(true); };
-  const openEdit = (v: TutorialVideo) => { setSelected(v); setForm({ title: v.title, category: v.category, url: v.url }); setFormOpen(true); };
+  const openEdit = (v: Video) => { setSelected(v); setForm({ title: v.title, category: v.category, url: v.url }); setFormOpen(true); };
 
   const handleSave = () => {
-    if (selected) {
-      setVideos(videos.map((v) => v.id === selected.id ? { ...v, ...form } : v));
-      setToast({ open: true, message: 'Video updated', severity: 'success' });
-    } else {
-      const newVideo: TutorialVideo = { id: Date.now().toString(), ...form, uploadDate: new Date().toISOString().split('T')[0] };
-      setVideos([...videos, newVideo]);
-      setToast({ open: true, message: 'Video added', severity: 'success' });
-    }
-    setFormOpen(false);
+    saveMutation.mutate({
+      id: selected?.id,
+      ...form,
+    });
   };
 
   const handleDelete = () => {
-    if (selected) {
-      setVideos(videos.filter((v) => v.id !== selected.id));
-      setToast({ open: true, message: 'Video deleted', severity: 'success' });
-    }
-    setDeleteOpen(false); setSelected(null);
+    if (selected) deleteMutation.mutate(selected.id);
   };
 
   return (
@@ -49,7 +67,7 @@ const TutorialVideos: React.FC = () => {
         <Typography variant="h4" sx={{ color: '#980755' }}>
           Tutorial Videos
         </Typography>
-        <Button variant="contained" startIcon={<Add />} onClick={openAdd}>Add Video</Button>
+        <Button variant="contained" startIcon={<Add />} onClick={openAdd} disabled={saveMutation.isPending}>Add Video</Button>
       </Box>
 
       <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 3, '& .Mui-selected': { color: '#980755' }, '& .MuiTabs-indicator': { bgcolor: '#980755' } }}>
@@ -68,15 +86,19 @@ const TutorialVideos: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filtered.map((v) => (
+            {isLoading ? (
+              <TableRow><TableCell colSpan={5} align="center" sx={{ py: 3 }}>Loading videos...</TableCell></TableRow>
+            ) : videos.length === 0 ? (
+              <TableRow><TableCell colSpan={5} align="center" sx={{ py: 3 }}>No videos found.</TableCell></TableRow>
+            ) : videos.map((v) => (
               <TableRow key={v.id} hover>
                 <TableCell>{v.title}</TableCell>
                 <TableCell><Chip label={v.category} size="small" color={v.category === 'Premium' ? 'primary' : 'default'} /></TableCell>
                 <TableCell sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>{v.url}</TableCell>
                 <TableCell>{v.uploadDate}</TableCell>
                 <TableCell align="right">
-                  <IconButton size="small" onClick={() => openEdit(v)}><Edit fontSize="small" /></IconButton>
-                  <IconButton size="small" color="error" onClick={() => { setSelected(v); setDeleteOpen(true); }}><Delete fontSize="small" /></IconButton>
+                  <IconButton size="small" onClick={() => openEdit(v)} disabled={deleteMutation.isPending}><Edit fontSize="small" /></IconButton>
+                  <IconButton size="small" color="error" onClick={() => { setSelected(v); setDeleteOpen(true); }} disabled={deleteMutation.isPending}><Delete fontSize="small" /></IconButton>
                 </TableCell>
               </TableRow>
             ))}
@@ -87,17 +109,19 @@ const TutorialVideos: React.FC = () => {
       <Dialog open={formOpen} onClose={() => setFormOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>{selected ? 'Edit Video' : 'Add Video'}</DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: '16px !important' }}>
-          <TextField label="Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} fullWidth />
+          <TextField label="Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} fullWidth disabled={saveMutation.isPending} />
           <FormControl fullWidth><InputLabel>Category</InputLabel>
-            <Select value={form.category} label="Category" onChange={(e) => setForm({ ...form, category: e.target.value as TutorialVideo['category'] })}>
+            <Select value={form.category} label="Category" onChange={(e) => setForm({ ...form, category: e.target.value as Video['category'] })} disabled={saveMutation.isPending}>
               <MenuItem value="Free">Free</MenuItem><MenuItem value="Premium">Premium</MenuItem>
             </Select>
           </FormControl>
-          <TextField label="Video URL" value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} fullWidth />
+          <TextField label="Video URL" value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} fullWidth disabled={saveMutation.isPending} />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setFormOpen(false)}>Cancel</Button>
-          <Button onClick={handleSave} variant="contained">{selected ? 'Save' : 'Add'}</Button>
+          <Button onClick={() => setFormOpen(false)} disabled={saveMutation.isPending}>Cancel</Button>
+          <Button onClick={handleSave} variant="contained" disabled={saveMutation.isPending}>
+            {saveMutation.isPending ? 'Saving...' : (selected ? 'Save' : 'Add')}
+          </Button>
         </DialogActions>
       </Dialog>
 
@@ -106,7 +130,7 @@ const TutorialVideos: React.FC = () => {
       <Snackbar open={toast.open} autoHideDuration={3000} onClose={() => setToast({ ...toast, open: false })} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
         <Alert severity={toast.severity} variant="filled">{toast.message}</Alert>
       </Snackbar>
-    </Box>
+    </Box >
   );
 };
 

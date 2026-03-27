@@ -110,7 +110,7 @@ const Users: React.FC = () => {
           <TextField label="Email" value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} fullWidth />
           <FormControl fullWidth><InputLabel>Role</InputLabel>
             <Select value={editForm.role} label="Role" onChange={(e) => setEditForm({ ...editForm, role: e.target.value as User['role'] })}>
-              <MenuItem value="Admin">Admin</MenuItem><MenuItem value="User">User</MenuItem><MenuItem value="Moderator">Moderator</MenuItem>
+              <MenuItem value="Admin">Admin</MenuItem><MenuItem value="User">User</MenuItem>
             </Select>
           </FormControl>
           <FormControl fullWidth><InputLabel>Status</InputLabel>

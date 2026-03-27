@@ -51,23 +51,23 @@ export const mockUsers: User[] = [
 ];
 
 export const mockDeepfakeVideos: DeepfakeVideo[] = [
-  { id: '1', title: 'Deepfake Awareness #1', thumbnail: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=200', url: 'https://example.com/video1.mp4', uploadDate: '2024-06-01' },
-  { id: '2', title: 'AI Detection Demo', thumbnail: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=200', url: 'https://example.com/video2.mp4', uploadDate: '2024-06-15' },
-  { id: '3', title: 'Safety Guide Video', thumbnail: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=200', url: 'https://example.com/video3.mp4', uploadDate: '2024-07-01' },
+  // { id: '1', title: 'Deepfake Awareness #1', thumbnail: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=200', url: 'https://example.com/video1.mp4', uploadDate: '2024-06-01' },
+  // { id: '2', title: 'AI Detection Demo', thumbnail: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=200', url: 'https://example.com/video2.mp4', uploadDate: '2024-06-15' },
+  // { id: '3', title: 'Safety Guide Video', thumbnail: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=200', url: 'https://example.com/video3.mp4', uploadDate: '2024-07-01' },
 ];
 
 export const mockTutorialVideos: TutorialVideo[] = [
-  { id: '1', title: 'Getting Started with Budgeting', category: 'Free', url: 'https://example.com/tut1.mp4', uploadDate: '2024-05-01' },
-  { id: '2', title: 'Advanced Investment Strategies', category: 'Premium', url: 'https://example.com/tut2.mp4', uploadDate: '2024-05-15' },
-  { id: '3', title: 'Emergency Fund Basics', category: 'Free', url: 'https://example.com/tut3.mp4', uploadDate: '2024-06-01' },
-  { id: '4', title: 'Tax Planning Masterclass', category: 'Premium', url: 'https://example.com/tut4.mp4', uploadDate: '2024-06-15' },
-  { id: '5', title: 'Saving Tips for Beginners', category: 'Free', url: 'https://example.com/tut5.mp4', uploadDate: '2024-07-01' },
+  // { id: '1', title: 'Getting Started with Budgeting', category: 'Free', url: 'https://example.com/tut1.mp4', uploadDate: '2024-05-01' },
+  // { id: '2', title: 'Advanced Investment Strategies', category: 'Premium', url: 'https://example.com/tut2.mp4', uploadDate: '2024-05-15' },
+  // { id: '3', title: 'Emergency Fund Basics', category: 'Free', url: 'https://example.com/tut3.mp4', uploadDate: '2024-06-01' },
+  // { id: '4', title: 'Tax Planning Masterclass', category: 'Premium', url: 'https://example.com/tut4.mp4', uploadDate: '2024-06-15' },
+  // { id: '5', title: 'Saving Tips for Beginners', category: 'Free', url: 'https://example.com/tut5.mp4', uploadDate: '2024-07-01' },
 ];
 
 export const mockPlans: SubscriptionPlan[] = [
-  { id: '1', name: 'Basic', price: 0, duration: 'monthly', features: ['Access to free tutorials', 'Basic budgeting tools', 'Community forum access'] },
-  { id: '2', name: 'Premium', price: 9.99, duration: 'monthly', features: ['All Basic features', 'Premium tutorials', 'AI financial advisor', 'Priority support', 'Deepfake protection tools'] },
-  { id: '3', name: 'Premium Annual', price: 99.99, duration: 'yearly', features: ['All Premium features', '2 months free', 'Exclusive workshops', '1-on-1 financial coaching'] },
+  // { id: '1', name: 'Basic', price: 0, duration: 'monthly', features: ['Access to free tutorials', 'Basic budgeting tools', 'Community forum access'] },
+  // { id: '2', name: 'Premium', price: 9.99, duration: 'monthly', features: ['All Basic features', 'Premium tutorials', 'AI financial advisor', 'Priority support', 'Deepfake protection tools'] },
+  // { id: '3', name: 'Premium Annual', price: 99.99, duration: 'yearly', features: ['All Premium features', '2 months free', 'Exclusive workshops', '1-on-1 financial coaching'] },
 ];
 
 export const mockQuestions: OnboardingQuestion[] = [

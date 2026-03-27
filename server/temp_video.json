@@ -1,0 +1,26 @@
+{
+  "_id": "69c29933f55775367ddb779a",
+  "key": "tutorial-budget-basics",
+  "__v": 0,
+  "captionsKey": "",
+  "category": "tutorial",
+  "createdAt": "2026-03-24T14:01:21.301Z",
+  "createdBy": null,
+  "description": "Learn how to set up a simple monthly budget.",
+  "durationSec": 420,
+  "isActive": true,
+  "planAccess": "free",
+  "renditions": [],
+  "s3Key": "videos/35959b7c-816f-4720-9284-d88043402141.mp4",
+  "sortOrder": 1,
+  "status": "ready",
+  "subCategory": "budgeting",
+  "tags": [
+    "budget",
+    "beginner"
+  ],
+  "thumbnailKey": "",
+  "title": "Budgeting Basics",
+  "updatedAt": "2026-03-24T14:03:49.753Z",
+  "updatedBy": null
+}
