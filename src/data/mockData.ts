@@ -2,7 +2,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'Admin' | 'User' | 'Moderator';
+  role: 'Admin' | 'User';
   status: 'Active' | 'Inactive' | 'Suspended';
   createdDate: string;
 }
@@ -40,14 +40,14 @@ export interface OnboardingQuestion {
 }
 
 export const mockUsers: User[] = [
-  { id: '1', name: 'Sarah Johnson', email: 'sarah@example.com', role: 'Admin', status: 'Active', createdDate: '2024-01-15' },
-  { id: '2', name: 'Emily Chen', email: 'emily@example.com', role: 'User', status: 'Active', createdDate: '2024-02-20' },
-  { id: '3', name: 'Jessica Williams', email: 'jessica@example.com', role: 'User', status: 'Inactive', createdDate: '2024-03-10' },
-  { id: '4', name: 'Amanda Garcia', email: 'amanda@example.com', role: 'Moderator', status: 'Active', createdDate: '2024-04-05' },
-  { id: '5', name: 'Rachel Brown', email: 'rachel@example.com', role: 'User', status: 'Suspended', createdDate: '2024-05-12' },
-  { id: '6', name: 'Megan Taylor', email: 'megan@example.com', role: 'User', status: 'Active', createdDate: '2024-06-08' },
-  { id: '7', name: 'Lisa Anderson', email: 'lisa@example.com', role: 'User', status: 'Active', createdDate: '2024-07-01' },
-  { id: '8', name: 'Nicole Martinez', email: 'nicole@example.com', role: 'Moderator', status: 'Inactive', createdDate: '2024-07-15' },
+  // { id: '1', name: 'Sarah Johnson', email: 'sarah@example.com', role: 'Admin', status: 'Active', createdDate: '2024-01-15' },
+  // { id: '2', name: 'Emily Chen', email: 'emily@example.com', role: 'User', status: 'Active', createdDate: '2024-02-20' },
+  // { id: '3', name: 'Jessica Williams', email: 'jessica@example.com', role: 'User', status: 'Inactive', createdDate: '2024-03-10' },
+  // { id: '4', name: 'Amanda Garcia', email: 'amanda@example.com', role: 'Moderator', status: 'Active', createdDate: '2024-04-05' },
+  // { id: '5', name: 'Rachel Brown', email: 'rachel@example.com', role: 'User', status: 'Suspended', createdDate: '2024-05-12' },
+  // { id: '6', name: 'Megan Taylor', email: 'megan@example.com', role: 'User', status: 'Active', createdDate: '2024-06-08' },
+  // { id: '7', name: 'Lisa Anderson', email: 'lisa@example.com', role: 'User', status: 'Active', createdDate: '2024-07-01' },
+  // { id: '8', name: 'Nicole Martinez', email: 'nicole@example.com', role: 'Moderator', status: 'Inactive', createdDate: '2024-07-15' },
 ];
 
 export const mockDeepfakeVideos: DeepfakeVideo[] = [
@@ -71,8 +71,8 @@ export const mockPlans: SubscriptionPlan[] = [
 ];
 
 export const mockQuestions: OnboardingQuestion[] = [
-  { id: '1', questionText: 'What is your primary financial goal?', type: 'MCQ', options: ['Save money', 'Invest', 'Pay off debt', 'Build emergency fund'], order: 1 },
-  { id: '2', questionText: 'What is your current monthly income range?', type: 'MCQ', options: ['Under $2,000', '$2,000-$5,000', '$5,000-$10,000', 'Over $10,000'], order: 2 },
-  { id: '3', questionText: 'Do you currently have a budget?', type: 'Boolean', options: ['Yes', 'No'], order: 3 },
-  { id: '4', questionText: 'What area of finance would you like to learn about first?', type: 'Text', options: [], order: 4 },
+  // { id: '1', questionText: 'What is your primary financial goal?', type: 'MCQ', options: ['Save money', 'Invest', 'Pay off debt', 'Build emergency fund'], order: 1 },
+  // { id: '2', questionText: 'What is your current monthly income range?', type: 'MCQ', options: ['Under $2,000', '$2,000-$5,000', '$5,000-$10,000', 'Over $10,000'], order: 2 },
+  // { id: '3', questionText: 'Do you currently have a budget?', type: 'Boolean', options: ['Yes', 'No'], order: 3 },
+  // { id: '4', questionText: 'What area of finance would you like to learn about first?', type: 'Text', options: [], order: 4 },
 ];

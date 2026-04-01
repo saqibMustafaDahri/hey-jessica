@@ -1,16 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box, Typography, TextField, MenuItem, Select, FormControl, InputLabel,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Paper, IconButton, Chip, TablePagination, Button, Dialog, DialogTitle,
   DialogContent, DialogActions, InputAdornment, Snackbar, Alert,
+  CircularProgress,
 } from '@mui/material';
 import { Edit, Delete, Search } from '@mui/icons-material';
-import { mockUsers, User } from '../data/mockData';
+import { User } from '../data/mockData';
 import ConfirmDialog from '../components/shared/ConfirmDialog';
+import api from '../lib/axios';
 
 const Users: React.FC = () => {
-  const [users, setUsers] = useState<User[]>(mockUsers);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [page, setPage] = useState(0);
@@ -21,8 +24,24 @@ const Users: React.FC = () => {
   const [editForm, setEditForm] = useState({ name: '', email: '', role: '' as User['role'], status: '' as User['status'] });
   const [toast, setToast] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
 
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get('/admin/users');
+      setUsers(response.data);
+    } catch (error) {
+      setToast({ open: true, message: 'Failed to fetch users', severity: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
   const filtered = users.filter((u) => {
-    const matchSearch = u.name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase());
+    const matchSearch = u.name.toLowerCase().includes(search.toLowerCase()) || (u.email && u.email.toLowerCase().includes(search.toLowerCase()));
     const matchStatus = statusFilter === 'All' || u.status === statusFilter;
     return matchSearch && matchStatus;
   });
@@ -33,24 +52,46 @@ const Users: React.FC = () => {
     setEditOpen(true);
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (selected) {
-      setUsers(users.map((u) => u.id === selected.id ? { ...u, ...editForm } : u));
-      setToast({ open: true, message: 'User updated successfully', severity: 'success' });
+      try {
+        const response = await api.put(`/admin/users/${selected.id}`, editForm);
+        setUsers(users.map((u) => u.id === selected.id ? response.data : u));
+        setToast({ open: true, message: 'User updated successfully', severity: 'success' });
+        setEditOpen(false);
+      } catch (error) {
+        setToast({ open: true, message: 'Failed to update user', severity: 'error' });
+      }
     }
-    setEditOpen(false);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (selected) {
-      setUsers(users.filter((u) => u.id !== selected.id));
-      setToast({ open: true, message: 'User deleted successfully', severity: 'success' });
+      try {
+        await api.delete(`/admin/users/${selected.id}`);
+        setUsers(users.filter((u) => u.id !== selected.id));
+        setToast({ open: true, message: 'User deleted successfully', severity: 'success' });
+        setDeleteOpen(false);
+        setSelected(null);
+      } catch (error) {
+        setToast({ open: true, message: 'Failed to delete user', severity: 'error' });
+      }
     }
-    setDeleteOpen(false);
-    setSelected(null);
   };
 
-  const statusColor = (s: string) => s === 'Active' ? 'success' : s === 'Inactive' ? 'default' : 'error';
+  const statusColor = (s: string) => {
+    if (s === 'Active') return 'success';
+    if (s === 'Inactive') return 'default';
+    return 'error';
+  };
+
+  if (loading && users.length === 0) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box>
@@ -69,6 +110,7 @@ const Users: React.FC = () => {
             <MenuItem value="Suspended">Suspended</MenuItem>
           </Select>
         </FormControl>
+        <Button variant="outlined" onClick={fetchUsers} sx={{ height: 40 }}>Refresh</Button>
       </Box>
 
       <TableContainer component={Paper} variant="outlined">
@@ -97,6 +139,11 @@ const Users: React.FC = () => {
                 </TableCell>
               </TableRow>
             ))}
+            {filtered.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={6} align="center">No users found</TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
         <TablePagination component="div" count={filtered.length} page={page} onPageChange={(_, p) => setPage(p)}
