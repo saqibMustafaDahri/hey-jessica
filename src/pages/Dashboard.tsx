@@ -1,23 +1,48 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Grid, Card, CardContent, Typography, Box } from '@mui/material';
-import {
-  People as PeopleIcon, Videocam as VideocamIcon,
-  School as SchoolIcon, CardMembership as CardIcon,
-  Quiz as QuizIcon, TrendingUp as TrendingUpIcon,
-} from '@mui/icons-material';
+import { Box, Typography, Grid, Card, CardContent } from '@mui/material';
 
-const stats = [
-  { label: 'Total Users', value: '8', icon: <PeopleIcon />, change: '+12%', path: '/users' },
-  { label: 'Deepfake Videos', value: '3', icon: <VideocamIcon />, change: '+5%', path: '/deepfake-videos' },
-  { label: 'Tutorial Videos', value: '5', icon: <SchoolIcon />, change: '+8%', path: '/tutorial-videos' },
-  { label: 'Subscription Plans', value: '3', icon: <CardIcon />, change: '0%', path: '/subscription-plans' },
-  { label: 'Onboarding Questions', value: '4', icon: <QuizIcon />, change: '+2%', path: '/onboarding-questions' },
-  { label: 'Active Subscribers', value: '156', icon: <TrendingUpIcon />, change: '+24%', path: '/subscription-plans' },
-];
+import { People as PeopleIcon, Videocam as VideocamIcon, School as SchoolIcon, CardMembership as CardIcon, Quiz as QuizIcon, TrendingUp as TrendingUpIcon } from '@mui/icons-material';
+import api from '../lib/axios';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  const [userCount, setUserCount] = useState(0);
+  const [videoCount, setVideoCount] = useState(0); 
+  const [planCount, setPlanCount] = useState(0);
+  const [questionCount, setQuestionCount] = useState(0);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [usersRes, videosRes, plansRes, onboardingRes] = await Promise.all([
+          api.get('/admin/users'),
+          api.get('/videos'),
+          api.get('/subscriptions/plans'),
+          api.get('/admin/onboarding/content'),
+        ]);
+  
+        setUserCount(Array.isArray(usersRes.data) ? usersRes.data.length : 0);
+        setVideoCount(Array.isArray(videosRes.data) ? videosRes.data.length : 0);
+        setPlanCount(Array.isArray(plansRes.data) ? plansRes.data.length : 0);
+  
+        const goals = onboardingRes.data?.goals;
+        setQuestionCount(Array.isArray(goals) ? goals.length : 0);
+      } catch (error) {
+        console.error('Dashboard fetch error:', error);
+      }
+    };
+  
+    fetchData();
+  }, []);
+  const stats = [
+    { label: 'Total Users', value: userCount, icon: <PeopleIcon />, path: '/users' },
+    { label: 'Deepfake Videos', value: videoCount, icon: <VideocamIcon />, path: '/deepfake-videos' },
+    { label: 'Tutorial Videos', value: videoCount, icon: <SchoolIcon />, path: '/tutorial-videos' },
+    { label: 'Subscription Plans', value: planCount, icon: <CardIcon />, path: '/subscription-plans' },
+    { label: 'Onboarding Questions', value: questionCount, icon: <QuizIcon />, path: '/onboarding-questions' },
+    { label: 'Active Subscribers', value: '-', icon: <TrendingUpIcon />, path: '/subscription-plans' },
+  ];
 
   return (
     <Box>
@@ -39,7 +64,6 @@ const Dashboard: React.FC = () => {
                   <Box>
                     <Typography variant="body2" color="text.secondary">{s.label}</Typography>
                     <Typography variant="h4" fontWeight={700} mt={0.5}>{s.value}</Typography>
-                    <Typography variant="caption" color="success.main">{s.change} this month</Typography>
                   </Box>
                   <Box sx={{
                     p: 1.2, borderRadius: '12px',
@@ -51,7 +75,7 @@ const Dashboard: React.FC = () => {
                 </Box>
               </CardContent>
             </Card>
-          </Grid>
+           </Grid>
         ))}
       </Grid>
     </Box>

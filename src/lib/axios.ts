@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { mockPlans, mockTutorialVideos, mockDeepfakeVideos } from '../data/mockData';
 
 const api = axios.create({
     baseURL: import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api/v1' : 'http://localhost:8000/api/v1'),
@@ -23,7 +22,7 @@ api.interceptors.request.use(
 const getMockPlans = () => {
     const saved = localStorage.getItem('mock_subscription_plans');
     if (saved) return JSON.parse(saved);
-    return mockPlans;
+    return ;
 };
 
 const saveMockPlans = (plans: any[]) => {

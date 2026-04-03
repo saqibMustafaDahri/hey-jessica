@@ -121,7 +121,7 @@ const Users: React.FC = () => {
               <TableCell sx={{ fontWeight: 600 }}>Email</TableCell>
               <TableCell sx={{ fontWeight: 600 }}>Role</TableCell>
               <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
-              <TableCell sx={{ fontWeight: 600 }}>Created</TableCell>
+              {/*<TableCell sx={{ fontWeight: 600 }}>Created</TableCell>*/}
               <TableCell sx={{ fontWeight: 600 }} align="right">Actions</TableCell>
             </TableRow>
           </TableHead>
@@ -132,7 +132,7 @@ const Users: React.FC = () => {
                 <TableCell>{user.email}</TableCell>
                 <TableCell><Chip label={user.role} size="small" variant="outlined" /></TableCell>
                 <TableCell><Chip label={user.status} size="small" color={statusColor(user.status)} /></TableCell>
-                <TableCell>{user.createdDate}</TableCell>
+                {/* <TableCell>{user.createdDate}</TableCell> */}
                 <TableCell align="right">
                   <IconButton size="small" onClick={() => handleEdit(user)}><Edit fontSize="small" /></IconButton>
                   <IconButton size="small" color="error" onClick={() => { setSelected(user); setDeleteOpen(true); }}><Delete fontSize="small" /></IconButton>

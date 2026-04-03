@@ -92,7 +92,7 @@ const User = mongoose.model('User', userSchema);
 // --- ROUTES ---
 
 // Subscription Routes
-app.get('/api/v1/subscriptions/plans', async (req, res) => {
+app.get('/api/v1/subscriptions/plans', async(req, res) => {
     try {
         const plans = await SubscriptionPlan.find();
         res.json(plans);
@@ -101,16 +101,14 @@ app.get('/api/v1/subscriptions/plans', async (req, res) => {
     }
 });
 
-app.post('/api/v1/subscriptions/plans', async (req, res) => {
+app.post('/api/v1/subscriptions/plans', async(req, res) => {
     try {
         const { id, name, price, duration, features } = req.body;
         let plan;
 
         if (id) {
             plan = await SubscriptionPlan.findByIdAndUpdate(
-                id,
-                { name, price, duration, features },
-                { new: true }
+                id, { name, price, duration, features }, { new: true }
             );
         } else {
             plan = new SubscriptionPlan({ name, price, duration, features });
@@ -123,7 +121,7 @@ app.post('/api/v1/subscriptions/plans', async (req, res) => {
     }
 });
 
-app.delete('/api/v1/subscriptions/plans/:id', async (req, res) => {
+app.delete('/api/v1/subscriptions/plans/:id', async(req, res) => {
     try {
         await SubscriptionPlan.findByIdAndDelete(req.params.id);
         res.json({ message: 'Plan deleted' });
@@ -133,7 +131,7 @@ app.delete('/api/v1/subscriptions/plans/:id', async (req, res) => {
 });
 
 // Video Routes
-app.get('/api/v1/videos', async (req, res) => {
+app.get('/api/v1/videos', async(req, res) => {
     try {
         const { category } = req.query;
         const filter = category ? { planAccess: category.toLowerCase() } : {};
@@ -144,7 +142,7 @@ app.get('/api/v1/videos', async (req, res) => {
     }
 });
 
-app.post('/api/v1/videos/upload-url', async (req, res) => {
+app.post('/api/v1/videos/upload-url', async(req, res) => {
     try {
         const { fileName, fileType } = req.body;
         const mockVideoUrl = `https://mock-s3-bucket.s3.amazonaws.com/videos/${Date.now()}-${fileName}`;
@@ -157,7 +155,7 @@ app.post('/api/v1/videos/upload-url', async (req, res) => {
     }
 });
 
-app.post('/api/v1/videos', async (req, res) => {
+app.post('/api/v1/videos', async(req, res) => {
     try {
         const { title, category, url } = req.body;
         const planAccess = category === 'Premium' ? 'premium' : 'free';
@@ -177,7 +175,7 @@ app.post('/api/v1/videos', async (req, res) => {
     }
 });
 
-app.delete('/api/v1/videos/:id', async (req, res) => {
+app.delete('/api/v1/videos/:id', async(req, res) => {
     try {
         await Video.findByIdAndDelete(req.params.id);
         res.json({ message: 'Video deleted' });
@@ -187,7 +185,7 @@ app.delete('/api/v1/videos/:id', async (req, res) => {
 });
 
 // User Admin Routes
-app.get('/api/v1/admin/users', async (req, res) => {
+app.get('/api/v1/admin/users', async(req, res) => {
     try {
         const users = await User.find().sort({ createdAt: -1 });
         res.json(users);
@@ -196,13 +194,11 @@ app.get('/api/v1/admin/users', async (req, res) => {
     }
 });
 
-app.put('/api/v1/admin/users/:id', async (req, res) => {
+app.put('/api/v1/admin/users/:id', async(req, res) => {
     try {
         const { name, email, role, status } = req.body;
         const user = await User.findByIdAndUpdate(
-            req.params.id,
-            { name, email, role, status },
-            { new: true }
+            req.params.id, { name, email, role, status }, { new: true }
         );
         if (!user) return res.status(404).json({ message: 'User not found' });
         res.json(user);
@@ -211,7 +207,7 @@ app.put('/api/v1/admin/users/:id', async (req, res) => {
     }
 });
 
-app.delete('/api/v1/admin/users/:id', async (req, res) => {
+app.delete('/api/v1/admin/users/:id', async(req, res) => {
     try {
         const user = await User.findByIdAndDelete(req.params.id);
         if (!user) return res.status(404).json({ message: 'User not found' });
@@ -256,7 +252,7 @@ configurationSchema.set('toJSON', {
 
 const Configuration = mongoose.model('Configuration', configurationSchema);
 
-app.get('/api/v1/admin/onboarding/content', async (req, res) => {
+app.get('/api/v1/admin/onboarding/content', async(req, res) => {
     try {
         const goals = await OnboardingGoal.find().sort({ sortOrder: 1 });
         const promptConfig = await Configuration.findOne({ key: 'ONBOARDING_GOALS_PROMPT' });
@@ -269,13 +265,11 @@ app.get('/api/v1/admin/onboarding/content', async (req, res) => {
     }
 });
 
-app.put('/api/v1/admin/onboarding/options/goals/:id', async (req, res) => {
+app.put('/api/v1/admin/onboarding/options/goals/:id', async(req, res) => {
     try {
         const { title, sortOrder, isActive } = req.body;
         const goal = await OnboardingGoal.findByIdAndUpdate(
-            req.params.id,
-            { title, sortOrder, isActive },
-            { new: true }
+            req.params.id, { title, sortOrder, isActive }, { new: true }
         );
         if (!goal) return res.status(404).json({ message: 'Goal not found' });
         res.json(goal);
@@ -284,7 +278,7 @@ app.put('/api/v1/admin/onboarding/options/goals/:id', async (req, res) => {
     }
 });
 
-app.delete('/api/v1/admin/onboarding/options/goals/:id', async (req, res) => {
+app.delete('/api/v1/admin/onboarding/options/goals/:id', async(req, res) => {
     try {
         const goal = await OnboardingGoal.findByIdAndDelete(req.params.id);
         if (!goal) return res.status(404).json({ message: 'Goal not found' });
@@ -294,14 +288,10 @@ app.delete('/api/v1/admin/onboarding/options/goals/:id', async (req, res) => {
     }
 });
 
-app.put('/api/v1/admin/onboarding/prompts/:key', async (req, res) => {
+app.put('/api/v1/admin/onboarding/prompts/:key', async(req, res) => {
     try {
         const { value } = req.body;
-        const config = await Configuration.findOneAndUpdate(
-            { key: req.params.key },
-            { value },
-            { new: true, upsert: true }
-        );
+        const config = await Configuration.findOneAndUpdate({ key: req.params.key }, { value }, { new: true, upsert: true });
         res.json(config);
     } catch (err) {
         res.status(400).json({ message: err.message });
