@@ -28,12 +28,30 @@ mongoose.connect(MONGODB_URI)
 
 // --- MODELS ---
 
+// const subscriptionPlanSchema = new mongoose.Schema({
+//     name: { type: String, required: true },
+//     price: { type: Number, required: true },
+//     duration: { type: String, enum: ['monthly', 'yearly'], default: 'monthly' },
+//     features: [String],
+// }, { timestamps: true });
+
+const slugify = (s) =>
+    String(s || '')
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '');
+
 const subscriptionPlanSchema = new mongoose.Schema({
+    key: { type: String, required: true, unique: true },
     name: { type: String, required: true },
     price: { type: Number, required: true },
     duration: { type: String, enum: ['monthly', 'yearly'], default: 'monthly' },
     features: [String],
 }, { timestamps: true });
+
+
+
 
 subscriptionPlanSchema.set('toJSON', {
     transform: (doc, ret) => {
@@ -101,17 +119,41 @@ app.get('/api/v1/subscriptions/plans', async(req, res) => {
     }
 });
 
+// app.post('/api/v1/subscriptions/plans', async(req, res) => {
+//     try {
+//         const { id, name, price, duration, features } = req.body;
+//         let plan;
+
+//         if (id) {
+//             plan = await SubscriptionPlan.findByIdAndUpdate(
+//                 id, { name, price, duration, features }, { new: true }
+//             );
+//         } else {
+//             plan = new SubscriptionPlan({ name, price, duration, features });
+//             await plan.save();
+//         }
+
+//         res.status(201).json(plan);
+//     } catch (err) {
+//         res.status(400).json({ message: err.message });
+//     }
+// });
+
+
+
 app.post('/api/v1/subscriptions/plans', async(req, res) => {
     try {
         const { id, name, price, duration, features } = req.body;
-        let plan;
 
+        const key = slugify(name);
+
+        let plan;
         if (id) {
             plan = await SubscriptionPlan.findByIdAndUpdate(
-                id, { name, price, duration, features }, { new: true }
+                id, { key, name, price, duration, features }, { new: true }
             );
         } else {
-            plan = new SubscriptionPlan({ name, price, duration, features });
+            plan = new SubscriptionPlan({ key, name, price, duration, features });
             await plan.save();
         }
 
@@ -120,6 +162,16 @@ app.post('/api/v1/subscriptions/plans', async(req, res) => {
         res.status(400).json({ message: err.message });
     }
 });
+
+
+
+
+
+
+
+
+
+
 
 app.delete('/api/v1/subscriptions/plans/:id', async(req, res) => {
     try {
